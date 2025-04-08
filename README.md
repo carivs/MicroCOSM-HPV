@@ -16,7 +16,7 @@ Microsimulation for the Control of South African Morbidity and Mortality (MicroC
 To compile the code and create the executable "Microsimulation":
 
 ```gcc
-g++ -std=c++14 Microsimulation.cpp StatFunctions.cpp mersenne.cpp -o Microsimulation
+g++ -std=c++14 -O2 Microsimulation.cpp StatFunctions.cpp mersenne.cpp -I. -o Microsimulation
 ```
 
 When running the code, random numbers are read from /randomHPV/xRandomUniformHPV.txt, where x=1 to 96. To run the code for one parameter combination, where x=1: 
@@ -25,7 +25,7 @@ When running the code, random numbers are read from /randomHPV/xRandomUniformHPV
 ./Microsimulation 1 
 ```
 
-The code is set up to run in parallel on a cluster, with each parameter combination running on one core. The files will run the 'status quo' of HPV vaccination and cervical cancer screening in South Africa, from 1985 to 2120, 50 iterations per parameter combination (IterationsPerPC). The output will be text files containing the average (over 50 iterations) age standardised rates (ASR) between 1985 and 2120. One parameter combination and 50 iterations should run for about 10 hours.
+The code is set up to run in parallel on a cluster, with each parameter combination running on one core. The files will run the 'status quo' of HPV vaccination and cervical cancer screening in South Africa, from 1985 to 2120, 50 iterations per parameter combination (IterationsPerPC). The output will include text files containing the total (over 50 iterations) numbers of HPV type-specific new cervical cancer cases by 5-year age group and HIV/ART status between 1985 and 2120. One parameter combination and 50 iterations should run for about 10 hours.
 
 ## Technical Appendix
 
