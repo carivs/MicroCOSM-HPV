@@ -1,0 +1,37 @@
+{
+	"ImplementYR"			: 2024,
+	"HPVvacc"			: 1 ,
+	"BOYSvacc"			: 0 ,
+	"RoutineScreening"		: 1 , 
+	"CCcalib"			: 1 , 
+	"PerfectSchedule"		: 0 ,
+	"HPVDNA"			: 0 ,
+	"HPVDNAThermal"			: 0 ,
+	"PropThermal"			: 1.0 , 
+	"HPVGenotyping"			: 0 ,
+	"PapTRIAGE"			: 0 ,
+	"Portal3"			: 0 ,	
+	"WHOscenario"			: 0 ,
+	"WHOvacc"			: 0 ,
+	"WHOScreening"			: 0 ,
+	"S3S4"				: 0 , 
+	"S5S6"				: 0 , 
+	"S7S11"				: 0 ,	
+	"CatchUpVaccHIV"		: 0 , 
+	"CatchUpVacc"		: 0 , 
+	"CatchUpAgeMIN"		: 13 , 
+	"CatchUpAgeMAX"		:  18, 
+	"CatchUpCoverage"		: 0.50 , 
+	"VaccineWane"			: 0 ,
+	"VaccDur"			: 10 ,
+	"UpdateStart"			: 0 ,
+	"CreateCohort"			: 0 , 
+	"UseMedians"			: 0 ,
+	"OneType"			: 0 , 
+	"WhichType"			: 0 ,
+	"targets"			: 0 ,
+	"GetMacD"			: 0 
+
+}
+
+
