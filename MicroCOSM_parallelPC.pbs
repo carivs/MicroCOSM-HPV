@@ -1,13 +1,13 @@
 #!/bin/bash 
-#PBS -N 4Catch18Wane
+#PBS -N Kimtest
 #PBS -P CBBI1106
 #PBS -q smp
 #PBS -l select=1:ncpus=24:mpiprocs=24
 #PBS -l walltime=12:00:00
 #PBS -m be
-#PBS -M carivs@sun.ac.za
-#PBS -o /mnt/lustre/users/cvanschalkwyk/Catch18wane/stdout.txt 
-#PBS -e /mnt/lustre/users/cvanschalkwyk/Catch18wane/stderr.txt
+#PBS -M kimmalloch@sun.ac.za
+#PBS -o /mnt/lustre/users/kmalloch/MicroCOSM/stdout.txt 
+#PBS -e /mnt/lustre/users/kmalloch/MicroCOSM/stderr.txt
 
 
 ulimit -s unlimited
@@ -16,13 +16,13 @@ module add gcc/5.1.0
 module add chpc/gnu/parallel-20180622
 
 NP=`cat ${PBS_NODEFILE} | wc -l`
-START=73
-((END=96))
+START=1
+((END=24))
 
 echo "Starting job..."
 echo "Starting job..." 1>&2
 
-seq ${START} ${END} | parallel --jobs 24 --sshdelay 0.2 --sshloginfile ${PBS_NODEFILE} "echo \"\$( date ): running on \${HOSTNAME}\"; cd /mnt/lustre/users/cvanschalkwyk/Catch18wane/; ./Microsimulation {}"
+seq ${START} ${END} | parallel --jobs 24 --sshdelay 0.2 --sshloginfile ${PBS_NODEFILE} "echo \"\$( date ): running on \${HOSTNAME}\"; cd /mnt/lustre/users/kmalloch/MicroCOSM/; ./Microsimulation {}"
 
 echo "Ending job..."
 echo "Ending job..." 1>&2
