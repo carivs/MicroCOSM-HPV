@@ -42,8 +42,6 @@ int main(int argc, char *argv[])
 	finish = clock();
 	elapsed_time = (finish - start);
 	std::cout << "Time taken: " << elapsed_time << endl;
-	std::cout << "AdministerMassTxV: " << AdministerMassTxV << endl;
-	std::cout << "AdministerMassTxVtoART: " << AdministerMassTxVtoART << endl;
 	//system("PAUSE");
 	return 0;
 	
@@ -3934,7 +3932,7 @@ void Pop::AssignSTIs()
 	//	seed += CurrSim;}
 	//CRandomMersenne rg(seed);
 	for (ic = 0; ic<InitPop; ic++){
-		for (id = 0; id<57; id++){ //changed 50 to 57
+		for (id = 0; id<50; id++){ //changed 50 to 57; back to 50
 			rSTI[ic][id] = rg.Random();
 		}
 	}
@@ -4089,7 +4087,6 @@ void Pop::AssignSTIs()
 			Register[ic].Scr58=0;
 			Register[ic].Scr61=0;
 			Register[ic].Scr64=0;
-			Register[ic].ScreenStatus=0;
 			Register[ic].GotTxV=0;
 
 			Register[ic].ScreenResult=0;
@@ -4966,10 +4963,7 @@ void Pop::OneYear()
 	
 	if (UpdateStart == 1 && CurrYear==2030){ GetNumbersByHPVstageAge();}
 	//if(WHOscenario==1 && WHOvacc==1 && CurrYear==ImplementYR){
-	if( AdministerMassTxV ==1  && (CurrYear == 2035) ){//CampaignYear[CurrYear-StartYear]==1){//#CurrYear==ImplementYR){
-		RSApop.AssignVacc2024();
-	}
-	if(AdministerMassTxVtoART == 1 && (CurrYear==2035) ){//CampaignYear[CurrYear-StartYear]==1){//#CurrYear==ImplementYR){
+	if( AdministerMassTxV ==1  || AdministerMassTxVtoART == 1 && (CurrYear == 2035) ){//CampaignYear[CurrYear-StartYear]==1){//#CurrYear==ImplementYR){
 		RSApop.AssignVacc2024();
 	}
 	GetPopPyramid();
@@ -5019,10 +5013,6 @@ void Pop::OneYear()
 		//if (CreateCohort == 1 && CurrYear > 1999 && (ii == 0 || ii == 12 || ii == 24 || ii == 36)){
 		//if (CreateCohort == 1 && CurrYear >= 2010 && (ii == 0) ){
 
-		//Mass TxV Campaign:
-	//		if(CurrYear == 2030 || CurrYear == 2035 || CurrYear == 2040 || CurrYear == 2045 && ii == 24){
-	//			MassTxV();
-	//		}
 		if (CreateCohort == 1 && (CurrYear >= 2010) && (CurrYear <= 2025) && (ii == 24)  ){ //
 			ProspectiveCohort(ii);
 		}	
@@ -6482,7 +6472,7 @@ void Pop::NewBirth(int ID)
 	KidA.TrueStage=0;
 	KidA.HPVstatus=0;
 	KidA.Age50=0;
-	KidA.ScreenStatus=0;
+	KidA.GotTxV=0;
 
 	// Assign sex, risk group, NonHIVmortProb and initial STD states
 	if (r[0]<MaleBirthPropn){
@@ -7524,6 +7514,11 @@ void ReadSTDepi(const char *input)
 	file.ignore(255, '\n');
 	for (int iz = 0; iz < 13; iz++) {
 		file >> TxVEfficacy[iz];
+	}
+	file.ignore(255, '\n');
+	file.ignore(255, '\n');
+	for (int iz = 0; iz < 13; iz++) {
+		file >> TxVEfficacyCIN[iz]; 
 	}
 	file.ignore(255, '\n');
 	file.ignore(255, '\n');
@@ -11406,16 +11401,15 @@ void ProspectiveCohort(int cycle)
 		ofstream file(s.str().c_str(), std::ios::app); 
 
 		for (int i = 0; i < tss; i++){
-			if (Register[i].VirginInd == 0 && Register[i].AliveInd == 1 && Register[i].AgeExact >= 18 &&  Register[i].AgeExact <= 24 && Register[i].HIVstage == 0	&& Register[i].SexInd==1 ){//&& Register[i].ScreenStatus ==1  ){ // && Register[i].VirginInd==0 ){  //&& Register[i].TrueStage>2
+			if (Register[i].VirginInd == 0 && Register[i].AliveInd == 1 && Register[i].AgeExact >= 18 &&  Register[i].AgeExact <= 24 && Register[i].HIVstage == 0	&& Register[i].SexInd==1 ){// && Register[i].VirginInd==0 ){  //&& Register[i].TrueStage>2
 				//){   
 				file << CurrSim << " " << CurrYear << " " <<  i+1 << " " <<  Register[i].AgeExact << " ";
-				//file << Register[i].SexInd << " "; // << Register[i].VirginInd << " " ; // INCLUDE THIS
+				//file << Register[i].SexInd << " "; // << Register[i].VirginInd << " " ; 
 				for (int xx = 0; xx < 13; xx++){
 					file << Register[i].HPVstage[xx] << " " ;
 				}
 				//file << Register[i].TrueStage << " " << Register[i].HIVstage << " "; // << Register[i].RiskGroup <<endl;//" " ; //
 				//file << Register[i].VaccinationStatus[0] << " " << Register[i].VaccinationStatus[1] << " " ; 
-				//file << Register[i].ScreenStatus << " ";
 				//file << Register[i].TxVStatus << " ";
 				file << endl;
 					
@@ -12175,7 +12169,7 @@ void Pop::AssignVacc2024()
 			{
 				if (Register[ic].HPVstage[yy] >= 2 && Register[ic].HPVstage[yy] <= 4)
 				{
-					adjustedTxVEfficacy[yy] = 0.5 * TxVEfficacy[yy];
+					adjustedTxVEfficacy[yy] = TxVEfficacyCIN[yy];
 				} // half the efficacy to treat CIN 1/2/3 compared to HPV infection
 				else
 				{
@@ -12183,7 +12177,7 @@ void Pop::AssignVacc2024()
 				}
 				// Further efficacy reduction for WLHIV not on ART:
 				if (!(Register[ic].HIVstage == 0 || Register[ic].HIVstage == 5))
-					adjustedTxVEfficacy[yy] *= 0.8; // multiply adjustedTxVEfficacy by reduction factor due to lowered immunocompetency in WLHIV not on ART
+					adjustedTxVEfficacy[yy] *= ReductionFactor; // multiply adjustedTxVEfficacy by reduction factor due to lowered immunocompetency in WLHIV not on ART
 				if (cross[ic] < adjustedTxVEfficacy[yy])
 				{
 					if ((Register[ic].HPVstage[yy] >= 1 && Register[ic].HPVstage[yy] <= 4) || Register[ic].HPVstage[yy] == 6)
@@ -12219,7 +12213,7 @@ void Pop::AssignVacc2024()
 			{
 				if (Register[ic].HPVstage[yy] >= 2 && Register[ic].HPVstage[yy] <= 4)
 				{
-					adjustedTxVEfficacy[yy] = 0.5 * TxVEfficacy[yy];
+					adjustedTxVEfficacy[yy] = TxVEfficacyCIN[yy];
 				}
 				else
 				{
@@ -12228,7 +12222,7 @@ void Pop::AssignVacc2024()
 				// Further efficacy reduction for WLHIV not on ART
 				if (!(Register[ic].HIVstage == 0 || Register[ic].HIVstage == 5))
 				{
-					adjustedTxVEfficacy[yy] *= 0.8;
+					adjustedTxVEfficacy[yy] *= ReductionFactor;
 				}
 				if (cross[ic] < adjustedTxVEfficacy[yy])
 				{
@@ -12507,7 +12501,7 @@ void Indiv::AdministerTherapeuticVaccine(int ID, double acceptRand, double effic
 	for (int xx = 0; xx < 13; xx++)
 	{
 		if (HPVstage[xx] >= 2 && HPVstage[xx] <= 4)
-				adjustedTxVEfficacy[xx] = 0.5 * TxVEfficacy[xx];
+				adjustedTxVEfficacy[xx] = 0.5 * TxVEfficacyCIN[xx];
 			else
 				adjustedTxVEfficacy[xx] = TxVEfficacy[xx];
 				// Further efficacy reduction for WLHIV not on ART
@@ -12797,7 +12791,9 @@ void Indiv::ScreenAlgorithm(int ID, double rea,  double ade, double tts, double 
 		
 		repeat=1;
 	}	
-	 //AdministerTherapeuticVaccine(ID, AccR, EffR);	//here.....
+	 if (TxVviaScreeningAlgorithm==1){
+		AdministerTherapeuticVaccine(ID, AccR, EffR); 
+	 }
 }
 void Indiv::WHOGetScreened(int ID, double rea, double scr, double ade, double tts, double res, double ttC, double CCd, 
 									double SI, double SII, double SIII, double SIV, double clr, 
@@ -13015,7 +13011,6 @@ void Indiv::WHOScreenAlgorithm(int ID,  double tts, double ttC, double clr, doub
 			}
 		}
 	}
-	ScreenStatus = 4;
 }
 
 void Indiv::GetTreated(int ID, double res, double trt, double clr, double regr, double tts, double SI, double SII, double SIII, double SIV , 
@@ -15336,6 +15331,8 @@ void ReadCCStrategies()
 	data.at("AdministerMassTxVtoART").get_to(AdministerMassTxVtoART);
 	data.at("MassTxVtoARTAgeMIN").get_to(MassTxVtoARTAgeMIN);
 	data.at("MassTxVtoARTAgeMAX").get_to(MassTxVtoARTAgeMAX);	
+	data.at("ReductionFactor").get_to(ReductionFactor);
+	data.at("TxVviaScreeningAlgorithm").get_to(TxVviaScreeningAlgorithm);	
 	data.at("UpdateStart").get_to(UpdateStart);		
 	data.at("CreateCohort").get_to(CreateCohort);		 
 	data.at("UseMedians").get_to(UseMedians);	

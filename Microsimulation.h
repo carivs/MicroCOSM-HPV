@@ -325,7 +325,8 @@ double PropVaccinatedWHO; //proportion of girls vaccinated in the national progr
 double PropVaccinatedHIV; 
 double VaccEfficacy[13]; //HPV vaccine efficacy for each of 13 types (there is evidence of cross-protection)
 double VaccEfficacyNONA[13]; //HPV vaccine efficacy for each of 13 types (nonavalent vaccine)
-double TxVEfficacy[13]; // HPV therapeutic vaccine efficacy for each of 13 types
+double TxVEfficacy[13]; // HPV therapeutic vaccine efficacy for each of 13 types HPV infection and CIN 1
+double TxVEfficacyCIN[13]; // HPV therapeutic vaccine efficacy for each of 13 types for CIN 2/3
 // ----------------------------------------------------------------------------------------
 // HPV/CC parameters not defined in the classes below
 // ----------------------------------------------------------------------------------------
@@ -411,7 +412,8 @@ int MassTxVWane;
 int AdministerMassTxVtoART;
 int MassTxVtoARTAgeMIN;
 int MassTxVtoARTAgeMAX;
-
+double ReductionFactor;
+int TxVviaScreeningAlgorithm;
 //double ScreenReason[8];
 double ScreenReason[8][136]; //Reason for screen by age + HIV status, over time
 //int TotScreens[12];
@@ -1284,7 +1286,6 @@ public:
 	int reason; //0=routine screening; 1=diagnostic
 	int DiagnosedCC; //0=no; 1=yes 
 	int ARTnextScreen; //if 1, screen next round
-	int ScreenStatus; //0=no screen; 1=screenalg; 2 = HPVscreenalg; 3 = ThermalHPVScreenAlg; 4 =WHOscreenalg
 	int TxVStatus[13]; //0=no TxV; 1=TxV given
 	int GotTxV;
 	//int ExpTxV;
@@ -1409,7 +1410,7 @@ public:
 	int NewVAT[54][136];
 	int NewThermal[54][136];
 	int NewVACC[108][136];
-	int NewTxV[108][136];
+	int NewTxV[54][136];
 	int TotScreens[8];
 	int NewCancer[18][136];
 	int StageIdiag[54][136];
