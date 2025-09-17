@@ -12156,39 +12156,40 @@ void Pop::AssignVacc2024()
 			Register[ic].AliveInd == 1 &&
 			Register[ic].SexInd == 1)
 		{
-			// Update vaccine statistics
-			RSApop.NewTxV[18 * Register[ic].SexInd + Register[ic].AgeGroup][CurrYear - StartYear] += 1;
-			// Mark as got therapeutic vaccine
-			Register[ic].GotTxV = 1;
-			if (rcatch[ic] > 0.9)
+
+			if (rcatch[ic] <= 0.9)
 			{ // probability of accepting vaccine
-				continue;
-			}
-			// Determine adjusted vaccine efficacy for each HPV type based on HIV status
-			for (int yy = 0; yy < 13; yy++)
-			{
-				if (Register[ic].HPVstage[yy] >= 2 && Register[ic].HPVstage[yy] <= 4)
+				// Update vaccine statistics
+				RSApop.NewTxV[18 * Register[ic].SexInd + Register[ic].AgeGroup][CurrYear - StartYear] += 1;
+				// Mark as got therapeutic vaccine
+				Register[ic].GotTxV = 1;
+				// Determine adjusted vaccine efficacy for each HPV type based on HIV status
+				for (int yy = 0; yy < 13; yy++)
 				{
-					adjustedTxVEfficacy[yy] = TxVEfficacyCIN[yy];
-				} // half the efficacy to treat CIN 1/2/3 compared to HPV infection
-				else
-				{
-					adjustedTxVEfficacy[yy] = TxVEfficacy[yy];
-				}
-				// Further efficacy reduction for WLHIV not on ART:
-				if (!(Register[ic].HIVstage == 0 || Register[ic].HIVstage == 5))
-					adjustedTxVEfficacy[yy] *= ReductionFactor; // multiply adjustedTxVEfficacy by reduction factor due to lowered immunocompetency in WLHIV not on ART
-				if (cross[ic] < adjustedTxVEfficacy[yy])
-				{
-					if ((Register[ic].HPVstage[yy] >= 1 && Register[ic].HPVstage[yy] <= 4) || Register[ic].HPVstage[yy] == 6)
+					if (Register[ic].HPVstage[yy] > 2 && Register[ic].HPVstage[yy] <= 4)
 					{
-						std::cout << "ic=" << ic << ", HPVtype=" << yy
-								  << ": TxV administered to all women, HPVstage was " << Register[ic].HPVstage[yy]
-								  << ", now set to 7" << std::endl;
-						Register[ic].HPVstage[yy] = 7; // can also set to 0
+						adjustedTxVEfficacy[yy] = TxVEfficacyCIN[yy];
+					} 
+					else
+					{
+						adjustedTxVEfficacy[yy] = TxVEfficacy[yy];
+					}
+					// Further efficacy reduction for WLHIV not on ART:
+					if (!(Register[ic].HIVstage == 0 || Register[ic].HIVstage == 5))
+						adjustedTxVEfficacy[yy] *= ReductionFactor; // multiply adjustedTxVEfficacy by reduction factor due to lowered immunocompetency in WLHIV not on ART
 						Register[ic].TxVStatus[yy]++;
-						std::cout << Register[ic].TxVStatus[yy]++ << std::endl;
-						std::cout << Register[ic].GotTxV++ << std::endl;
+						if (cross[ic] < adjustedTxVEfficacy[yy])
+					{
+						if ((Register[ic].HPVstage[yy] >= 1 && Register[ic].HPVstage[yy] <= 4) || Register[ic].HPVstage[yy] == 6)
+						{
+							// std::cout << "ic=" << ic << ", HPVtype=" << yy
+							//		  << ": TxV administered to all women, HPVstage was " << Register[ic].HPVstage[yy]
+							//		  << ", now set to 7" << std::endl;
+							Register[ic].HPVstage[yy] = 0; // can also set to 0
+							
+							// std::cout << Register[ic].TxVStatus[yy]++ << std::endl;
+							// std::cout << Register[ic].GotTxV++ << std::endl;
+						}
 					}
 				}
 			}
@@ -12200,39 +12201,40 @@ void Pop::AssignVacc2024()
 			Register[ic].SexInd == 1 &&
 			Register[ic].HIVstage == 5)
 		{
-			// Update vaccine statistics
-			RSApop.NewTxV[18 * Register[ic].SexInd + Register[ic].AgeGroup][CurrYear - StartYear] += 1;
-			// Mark as got therapeutic vaccine
-			Register[ic].GotTxV = 1;
-			if (rcatch[ic] > 0.9)
+
+			if (rcatch[ic] <= 0.9)
 			{ // probability of accepting vaccine
-				continue;
-			}
-			// Determine adjusted vaccine efficacy for each HPV type based on HIV status
-			for (int yy = 0; yy < 13; yy++)
-			{
-				if (Register[ic].HPVstage[yy] >= 2 && Register[ic].HPVstage[yy] <= 4)
+				// Update vaccine statistics
+				RSApop.NewTxV[18 * Register[ic].SexInd + Register[ic].AgeGroup][CurrYear - StartYear] += 1;
+				// Mark as got therapeutic vaccine
+				Register[ic].GotTxV = 1;
+				// Determine adjusted vaccine efficacy for each HPV type based on HIV status
+				for (int yy = 0; yy < 13; yy++)
 				{
-					adjustedTxVEfficacy[yy] = TxVEfficacyCIN[yy];
-				}
-				else
-				{
-					adjustedTxVEfficacy[yy] = TxVEfficacy[yy];
-				}
-				// Further efficacy reduction for WLHIV not on ART
-				if (!(Register[ic].HIVstage == 0 || Register[ic].HIVstage == 5))
-				{
-					adjustedTxVEfficacy[yy] *= ReductionFactor;
-				}
-				if (cross[ic] < adjustedTxVEfficacy[yy])
-				{
-					if ((Register[ic].HPVstage[yy] >= 1 && Register[ic].HPVstage[yy] <= 4) || Register[ic].HPVstage[yy] == 6)
+					if (Register[ic].HPVstage[yy] > 2 && Register[ic].HPVstage[yy] <= 4)
 					{
-						std::cout << "CurrYear " << CurrYear << "ic=" << ic << ", HPVtype=" << yy
-								  << ": TxV administered to ART woman, HPVstage was " << Register[ic].HPVstage[yy]
-								  << ", now set to 7" << std::endl;
-						Register[ic].HPVstage[yy] = 7;
-						Register[ic].TxVStatus[yy]++;
+						adjustedTxVEfficacy[yy] = TxVEfficacyCIN[yy];
+					}
+					else
+					{
+						adjustedTxVEfficacy[yy] = TxVEfficacy[yy];
+					}
+					// Further efficacy reduction for WLHIV not on ART
+					if (!(Register[ic].HIVstage == 0 || Register[ic].HIVstage == 5))
+					{
+						adjustedTxVEfficacy[yy] *= ReductionFactor;
+					}
+					Register[ic].TxVStatus[yy]++;
+					if (cross[ic] < adjustedTxVEfficacy[yy])
+					{
+						if ((Register[ic].HPVstage[yy] >= 1 && Register[ic].HPVstage[yy] <= 4) || Register[ic].HPVstage[yy] == 6)
+						{
+							// std::cout << "CurrYear " << CurrYear << "ic=" << ic << ", HPVtype=" << yy
+							//		  << ": TxV administered to ART woman, HPVstage was " << Register[ic].HPVstage[yy]
+							//		  << ", now set to 7" << std::endl;
+							Register[ic].HPVstage[yy] = 0;
+							
+						}
 					}
 				}
 			}
@@ -12497,24 +12499,31 @@ void Indiv::AdministerTherapeuticVaccine(int ID, double acceptRand, double effic
 		 return;
 	 }
  */
+	RSApop.NewTxV[18 * SexInd + AgeGroup][CurrYear - StartYear] += 1;
+	GotTxV = 1;
 	// Determine adjusted vaccine efficacy for each HPV type based on HIV status
 	for (int xx = 0; xx < 13; xx++)
 	{
-		if (HPVstage[xx] >= 2 && HPVstage[xx] <= 4)
-				adjustedTxVEfficacy[xx] = 0.5 * TxVEfficacyCIN[xx];
-			else
-				adjustedTxVEfficacy[xx] = TxVEfficacy[xx];
-				// Further efficacy reduction for WLHIV not on ART
-				if (!(HIVstage == 0 || HIVstage == 5))
-				adjustedTxVEfficacy[xx] *= 0.8;
-	
-		if ((HPVstage[xx] >= 1 && HPVstage[xx] <= 4) || (HPVstage[xx] == 6 ))
+		if (HPVstage[xx] > 2 && HPVstage[xx] <= 4)
 		{
+			adjustedTxVEfficacy[xx] = TxVEfficacyCIN[xx];
+		}
+		else
+		{
+			adjustedTxVEfficacy[xx] = TxVEfficacy[xx];
+		}
+		// Further efficacy reduction for WLHIV not on ART
+		if (!(HIVstage == 0 || HIVstage == 5))
+		{
+			adjustedTxVEfficacy[xx] *= ReductionFactor;
+		}
+		if ((HPVstage[xx] >= 1 && HPVstage[xx] <= 4) || (HPVstage[xx] == 6))
+		{
+			TxVStatus[xx]++;
 			// Convert active infection to latent with probability equal to efficacy
 			if (efficacyRand < adjustedTxVEfficacy[xx])
 			{
-				HPVstageE[xx] = 7;
-				TxVStatus[xx]++;
+				HPVstageE[xx] = 0;
 			}
 		}
 	}
