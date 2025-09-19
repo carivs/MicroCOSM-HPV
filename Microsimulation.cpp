@@ -43,7 +43,6 @@ int main(int argc, char *argv[])
 	elapsed_time = (finish - start);
 	std::cout << "Time taken: " << elapsed_time << endl;
 	//system("PAUSE");
-	
 	return 0;
 	
 }
@@ -3933,7 +3932,7 @@ void Pop::AssignSTIs()
 	//	seed += CurrSim;}
 	//CRandomMersenne rg(seed);
 	for (ic = 0; ic<InitPop; ic++){
-		for (id = 0; id<50; id++){
+		for (id = 0; id<50; id++){ //changed 50 to 57; back to 50
 			rSTI[ic][id] = rg.Random();
 		}
 	}
@@ -4088,6 +4087,7 @@ void Pop::AssignSTIs()
 			Register[ic].Scr58=0;
 			Register[ic].Scr61=0;
 			Register[ic].Scr64=0;
+			Register[ic].GotTxV=0;
 
 			Register[ic].ScreenResult=0;
 			Register[ic].timePassed=0;
@@ -4163,12 +4163,12 @@ void Pop::GetPopPyramid()
 				PopPyramidAll[ia][ig] += 1;
 				if(Register[ic].HIVstage==5){PopPyramidAllART[ig] += 1;}
 				if(Register[ic].AgeExact>=CatchUpAgeMIN && Register[ic].AgeExact<CatchUpAgeMAX) {PopPyramid9[ih][ig] += 1;}
-				/*if(Indiv::AnyHPV(Register[ic].HPVstage,  {0,1,2,3,6,8,10}, {1,2,3,4,5})){
+				if(Indiv::AnyHPV(Register[ic].HPVstage,  {0,1}, {1,2,3,4})){
 					HPVprevVT[18*ih + ia][ig] += 1;
 				}
 				if(Register[ic].HPVstatus==1){
 					HPVprevAll[18*ih + ia][ig] += 1;
-				}*/
+				}
 				if(Register[ic].TrueStage>1 ){
 					CIN2prev[18*ih + ia][ig] += 1;
 				}
@@ -4805,13 +4805,13 @@ void Pop::SavePopPyramid(const char* filout)
 		}
 		file << endl;
 	}
-	for (ia = 0; ia < 54; ia++){
+	/*for (ia = 0; ia < 54; ia++){
 		for (is = 0; is<136; is++){
 			file << right << PopPyramidMale[ia][is] << "	";
 		}
 		file << endl;
-	}
-	/*for (ia = 0; ia < 54; ia++){
+	}*/
+	for (ia = 0; ia < 54; ia++){
 		for (is = 0; is<136; is++){
 			file << right << HPVprevVT[ia][is] << "	";
 		}
@@ -4822,8 +4822,8 @@ void Pop::SavePopPyramid(const char* filout)
 			file << right << HPVprevAll[ia][is] << "	";
 		}
 		file << endl;
-	}*/
-	for (ia = 0; ia < 54; ia++){
+	}
+	/*for (ia = 0; ia < 54; ia++){
 		for (is = 0; is<136; is++){
 			file << right << CIN2prev[ia][is] << "	";
 		}
@@ -4840,7 +4840,7 @@ void Pop::SavePopPyramid(const char* filout)
 			file << right << PopVaxx61[ia][is] << "	";
 		}
 		file << endl;
-	}
+	}*/
 	file.close();
 	
 }
@@ -4953,7 +4953,6 @@ void Pop::OneYear()
 	//if (FixedUncertainty == 1){ResetFlow();  }
 	ResetFlow();
 
-
 	if (CurrYear>StartYear){
 		UpdateAgeGroup();
 	}
@@ -4964,14 +4963,12 @@ void Pop::OneYear()
 	
 	if (UpdateStart == 1 && CurrYear==2030){ GetNumbersByHPVstageAge();}
 	//if(WHOscenario==1 && WHOvacc==1 && CurrYear==ImplementYR){
-	if((CatchUpVaccHIV==1||CatchUpVacc==1) && CampaignYear[CurrYear-StartYear]==1){//#CurrYear==ImplementYR){
+	if((AdministerMassTxV ==1  || AdministerMassTxVtoART == 1) && (CurrYear == 2035)){//CampaignYear[CurrYear-StartYear]==1){//#CurrYear==ImplementYR){
 		RSApop.AssignVacc2024();
 	}
-	
 	GetPopPyramid();
 	
 	//CalcModelCoverage();
-	
 
 	//GetSTIconcordance();
 	/*if ((CurrYear == 2005 || CurrYear == 2008 || CurrYear == 2012 || CurrYear == 2017)){ // && HIVcalib == 1){
@@ -5010,18 +5007,20 @@ void Pop::OneYear()
 	// Project changes in behaviour, disease & demography over year
 	BehavCycleCount = 0;
 	for (ii = 0; ii<CycleS; ii++){
-	     
+
 		OneBehavCycle();
 	    //if(ii==24) { GetPopPyramid();}
 		//if (CreateCohort == 1 && CurrYear > 1999 && (ii == 0 || ii == 12 || ii == 24 || ii == 36)){
 		//if (CreateCohort == 1 && CurrYear >= 2010 && (ii == 0) ){
-		if (CreateCohort == 1 && (CurrYear == 2026) && (ii ==24) ){ //
+
+		if (CreateCohort == 1 && (CurrYear >= 2010) && (CurrYear <= 2025) && (ii == 24)  ){ //
 			ProspectiveCohort(ii);
-		}
+		}	
 	}
 	//GetPopPyramid();
 	CalcModelCoverage();
 	CurrYear += 1;
+
 }
 
 void Pop::ResetFlow()
@@ -6473,6 +6472,7 @@ void Pop::NewBirth(int ID)
 	KidA.TrueStage=0;
 	KidA.HPVstatus=0;
 	KidA.Age50=0;
+	KidA.GotTxV=0;
 
 	// Assign sex, risk group, NonHIVmortProb and initial STD states
 	if (r[0]<MaleBirthPropn){
@@ -6504,6 +6504,7 @@ void Pop::NewBirth(int ID)
 		KidA.TimeinCIN3[xx] = 0; 
 		KidA.WeibullCIN3[xx] = 0; 
 		KidA.VaccinationStatus[xx]=0;
+		KidA.TxVStatus[xx]=0;
 	}
 	KidA.TimeinStageI=0;
 	KidA.TimeinStageII=0;
@@ -6772,7 +6773,7 @@ void Pop::GetSTDtransitions()
 	
 	int tpp = Register.size();
 	for (ic = 0; ic<tpp; ic++){
-		for (id = 0; id<55; id++){
+		for (id = 0; id<57; id++){
 			rSTI[ic][id] = rg.Random();
 		}
 	}
@@ -6831,7 +6832,7 @@ void Pop::GetSTDtransitions()
 			if (WHOScreening==0 && PerfectSchedule==0 ){
 				Register[ic].GetScreened(ic + 1, rSTI[ic][25], rSTI[ic][26], rSTI[ic][27], rSTI[ic][28], rSTI[ic][29], rSTI[ic][30], 
 												rSTI[ic][31], rSTI[ic][32], rSTI[ic][33], rSTI[ic][34] , rSTI[ic][35],
-												rSTI[ic][45], rSTI[ic][46], rSTI[ic][47], rSTI[ic][48]);
+												rSTI[ic][45], rSTI[ic][46], rSTI[ic][47], rSTI[ic][48], rSTI[ic][55], rSTI[ic][56]);
 				if(Register[ic].timetoCol > 0) {
 					Register[ic].GetTreated(ic + 1, rSTI[ic][36], rSTI[ic][37], rSTI[ic][38], rSTI[ic][39], rSTI[ic][40],
 											rSTI[ic][41], rSTI[ic][42], rSTI[ic][43], rSTI[ic][44],
@@ -6842,7 +6843,7 @@ void Pop::GetSTDtransitions()
 				if(CurrYear>1999 && CurrYear<ImplementYR){
 					Register[ic].GetScreened(ic + 1, rSTI[ic][25], rSTI[ic][26], rSTI[ic][27], rSTI[ic][28], rSTI[ic][29], rSTI[ic][30], 
 													rSTI[ic][31], rSTI[ic][32], rSTI[ic][33], rSTI[ic][34] , rSTI[ic][35],
-												rSTI[ic][45], rSTI[ic][46], rSTI[ic][47], rSTI[ic][48]);
+												rSTI[ic][45], rSTI[ic][46], rSTI[ic][47], rSTI[ic][48], rSTI[ic][55], rSTI[ic][56]);
 					if(Register[ic].timetoCol > 0) {
 						Register[ic].GetTreated(ic + 1, rSTI[ic][36], rSTI[ic][37], rSTI[ic][38], rSTI[ic][39], rSTI[ic][40],
 											rSTI[ic][41], rSTI[ic][42], rSTI[ic][43], rSTI[ic][44],
@@ -6852,7 +6853,7 @@ void Pop::GetSTDtransitions()
 				if(CurrYear>=ImplementYR ){
 					Register[ic].WHOGetScreened(ic + 1, rSTI[ic][25], rSTI[ic][26], rSTI[ic][27], rSTI[ic][28], rSTI[ic][29], rSTI[ic][30], 
 													rSTI[ic][31], rSTI[ic][32],  rSTI[ic][33], rSTI[ic][34] , rSTI[ic][35], rSTI[ic][36],
-												rSTI[ic][46], rSTI[ic][47], rSTI[ic][48], rSTI[ic][49]);	
+												rSTI[ic][46], rSTI[ic][47], rSTI[ic][48], rSTI[ic][49], rSTI[ic][55], rSTI[ic][56]);	
 					if(Register[ic].timetoCol > 0) {
 						Register[ic].GetTreated(ic + 1,  rSTI[ic][37], rSTI[ic][38], rSTI[ic][39], rSTI[ic][40],
 												rSTI[ic][41], rSTI[ic][42], rSTI[ic][43], rSTI[ic][44], rSTI[ic][45],
@@ -6864,7 +6865,7 @@ void Pop::GetSTDtransitions()
 				if(CurrYear>1999 && CurrYear<ImplementYR){
 					Register[ic].GetScreened(ic + 1, rSTI[ic][25], rSTI[ic][26], rSTI[ic][27], rSTI[ic][28], rSTI[ic][29], rSTI[ic][30], 
 													rSTI[ic][31], rSTI[ic][32], rSTI[ic][33], rSTI[ic][34] , rSTI[ic][35],
-												rSTI[ic][45], rSTI[ic][46], rSTI[ic][47], rSTI[ic][48]);
+												rSTI[ic][45], rSTI[ic][46], rSTI[ic][47], rSTI[ic][48], rSTI[ic][55], rSTI[ic][56]);
 					if(Register[ic].timetoCol > 0) {
 						Register[ic].GetTreated(ic + 1, rSTI[ic][36], rSTI[ic][37], rSTI[ic][38], rSTI[ic][39], rSTI[ic][40],
 						rSTI[ic][41], rSTI[ic][42], rSTI[ic][43], rSTI[ic][44],
@@ -6874,7 +6875,7 @@ void Pop::GetSTDtransitions()
 				if(CurrYear>=ImplementYR){
 					Register[ic].PerfectGetScreened(ic + 1, rSTI[ic][25], rSTI[ic][26], rSTI[ic][27], rSTI[ic][28], rSTI[ic][29], rSTI[ic][30], 
 												rSTI[ic][31], rSTI[ic][32], rSTI[ic][33], rSTI[ic][34], rSTI[ic][35],
-												rSTI[ic][45], rSTI[ic][46], rSTI[ic][47], rSTI[ic][48]);
+												rSTI[ic][45], rSTI[ic][46], rSTI[ic][47], rSTI[ic][48], rSTI[ic][55], rSTI[ic][56]);
 					if(Register[ic].timetoCol > 0) {
 						Register[ic].GetTreated(ic + 1, rSTI[ic][36], rSTI[ic][37], rSTI[ic][38], rSTI[ic][39], rSTI[ic][40],
 											rSTI[ic][41], rSTI[ic][42], rSTI[ic][43], rSTI[ic][44],
@@ -7508,6 +7509,16 @@ void ReadSTDepi(const char *input)
 	file.ignore(255, '\n');
 	for (iz = 0; iz<13; iz++){
 		file >> VaccEfficacyNONA[iz];
+	}
+	file.ignore(255, '\n');
+	file.ignore(255, '\n');
+	for (int iz = 0; iz < 13; iz++) {
+		file >> TxVEfficacy[iz];
+	}
+	file.ignore(255, '\n');
+	file.ignore(255, '\n');
+	for (int iz = 0; iz < 13; iz++) {
+		file >> TxVEfficacyCIN[iz]; 
 	}
 	file.ignore(255, '\n');
 	file.ignore(255, '\n');
@@ -11374,6 +11385,7 @@ void Indiv::GetRiskGroup()
 
 void ProspectiveCohort(int cycle)
 {
+	
 		int tss = Register.size();
 		int SimCount2 = (CurrSim - 1)/IterationsPerPC;
 
@@ -11389,15 +11401,16 @@ void ProspectiveCohort(int cycle)
 		ofstream file(s.str().c_str(), std::ios::app); 
 
 		for (int i = 0; i < tss; i++){
-			if (Register[i].AliveInd == 1 && Register[i].AgeGroup >= 2 && Register[i].SexInd==1){ // && Register[i].VirginInd==0 ){  //&& Register[i].TrueStage>2
+			if (Register[i].VirginInd == 0 && Register[i].AliveInd == 1 && Register[i].AgeExact >= 18 &&  Register[i].AgeExact < 25 && Register[i].HIVstage == 0	&& Register[i].SexInd==1 ){// && Register[i].VirginInd==0 ){  //&& Register[i].TrueStage>2
 				//){   
 				file << CurrSim << " " << CurrYear << " " <<  i+1 << " " <<  Register[i].AgeExact << " ";
-				//file << Register[i].SexInd << " "; // << Register[i].VirginInd << " " ;
+				//file << Register[i].SexInd << " "; // << Register[i].VirginInd << " " ; 
 				for (int xx = 0; xx < 13; xx++){
 					file << Register[i].HPVstage[xx] << " " ;
 				}
 				//file << Register[i].TrueStage << " " << Register[i].HIVstage << " "; // << Register[i].RiskGroup <<endl;//" " ; //
-				file << Register[i].VaccinationStatus[0] << " " << Register[i].VaccinationStatus[1] << " " ; 
+				//file << Register[i].VaccinationStatus[0] << " " << Register[i].VaccinationStatus[1] << " " ; 
+				//file << Register[i].TxVStatus << " ";
 				file << endl;
 					
 			}
@@ -12037,93 +12050,196 @@ void Pop::GetONARTprev(STDtransition* a, int STDind)
 
 void Pop::AssignVacc2024()
 {
-	
+
 	int ic, SimCount2;
+	double adjustedTxVEfficacy[13];
 	double rcatch[MaxPop];
 	double wane1[MaxPop];
 	double cross[MaxPop];
-	int  seedy;
+	int seedy;
 	seedy = CurrSim * 92 + process_num * 7928 + CurrYear;
 	SimCount2 = (CurrSim - 1) / IterationsPerPC;
-		
 	CRandomMersenne rg2(seedy);
-		
 	int tpp = Register.size();
-		
-	for (ic = 0; ic < tpp; ic++){
+
+	for (ic = 0; ic < tpp; ic++)
+	{
 		rcatch[ic] = rg2.Random();
 		wane1[ic] = rg2.Random();
 		cross[ic] = rg2.Random();
 	}
-	//ofstream file("VaccDur.txt", std::ios::app);
-	
-	for (ic = 0; ic < tpp; ic++){
-		if(CatchUpVaccHIV==1 && Register[ic].HIVstage==5 && 
+	// ofstream file("VaccDur.txt", std::ios::app);
+
+	for (ic = 0; ic < tpp; ic++)
+	{
+		if (CatchUpVaccHIV == 1 && Register[ic].HIVstage == 5 &&
 			(Register[ic].AgeExact >= CatchUpAgeMIN && Register[ic].AgeExact < CatchUpAgeMAX) &&
-			Register[ic].AliveInd == 1 && Register[ic].SexInd==1){ //  && Register[ic].GotVaccOffer==0){ //
-				Register[ic].GotVaccOffer = 1;
-				if(rcatch[ic]<CatchUpCoverage){
-					RSApop.NewVACC[18*Register[ic].SexInd + Register[ic].AgeGroup][CurrYear-StartYear] += 1;
+			Register[ic].AliveInd == 1 && Register[ic].SexInd == 1)
+		{ //  && Register[ic].GotVaccOffer==0){ //
+			Register[ic].GotVaccOffer = 1;
+			if (rcatch[ic] < CatchUpCoverage)
+			{
+				RSApop.NewVACC[18 * Register[ic].SexInd + Register[ic].AgeGroup][CurrYear - StartYear] += 1;
 				Register[ic].GotVacc = 1;
-					if(WHOvacc==1){
-					Register[ic].VaccinationStatus[0]=1;
-					Register[ic].VaccinationStatus[1]=1;
-					Register[ic].VaccinationStatus[2]=1;
-					Register[ic].VaccinationStatus[3]=1;
-					Register[ic].VaccinationStatus[6]=1;
-					Register[ic].VaccinationStatus[8]=1;
-					Register[ic].VaccinationStatus[10]=1;
+				if (WHOvacc == 1)
+				{
+					Register[ic].VaccinationStatus[0] = 1;
+					Register[ic].VaccinationStatus[1] = 1;
+					Register[ic].VaccinationStatus[2] = 1;
+					Register[ic].VaccinationStatus[3] = 1;
+					Register[ic].VaccinationStatus[6] = 1;
+					Register[ic].VaccinationStatus[8] = 1;
+					Register[ic].VaccinationStatus[10] = 1;
+				}
+				else
+				{
+					Register[ic].VaccinationStatus[0] = 1;
+					Register[ic].VaccinationStatus[1] = 1;
+					if (cross[ic] < 0.5)
+					{
+						Register[ic].VaccinationStatus[2] = 1;
+						Register[ic].VaccinationStatus[3] = 1;
+						Register[ic].VaccinationStatus[6] = 1;
 					}
-					else{
-					Register[ic].VaccinationStatus[0]=1;
-					Register[ic].VaccinationStatus[1]=1;
-						if(cross[ic] <0.5){
-						Register[ic].VaccinationStatus[2]=1;
-						Register[ic].VaccinationStatus[3]=1;
-						Register[ic].VaccinationStatus[6]=1;
-							
-						}
-					}
-					if(VaccineWane==1){
+				}
+				if (VaccineWane == 1)
+				{
 					Register[ic].TimeVacc = 0;
-					Register[ic].ExpVacc = 48*20 + (-48 * VaccDur * log(wane1[ic]));
-					if(Register[ic].ExpVacc==0){Register[ic].ExpVacc=1;}
-					//file << ic << " " << Register[ic].ExpVacc << endl;
-						
+					Register[ic].ExpVacc = 48 * 20 + (-48 * VaccDur * log(wane1[ic]));
+					if (Register[ic].ExpVacc == 0)
+					{
+						Register[ic].ExpVacc = 1;
+					}
+					// file << ic << " " << Register[ic].ExpVacc << endl;
+				}
+			}
+		}
+		if (CatchUpVacc == 1 && (Register[ic].AgeExact >= CatchUpAgeMIN && Register[ic].AgeExact < CatchUpAgeMAX) &&
+			Register[ic].AliveInd == 1 && Register[ic].GotVacc == 0 && Register[ic].SexInd == 1 && rcatch[ic] < CatchUpCoverage)
+		{
+			RSApop.NewVACC[18 * Register[ic].SexInd + Register[ic].AgeGroup][CurrYear - StartYear] += 1;
+			Register[ic].GotVacc = 1;
+			if (WHOvacc == 1)
+			{
+				Register[ic].VaccinationStatus[0] = 1;
+				Register[ic].VaccinationStatus[1] = 1;
+				Register[ic].VaccinationStatus[2] = 1;
+				Register[ic].VaccinationStatus[3] = 1;
+				Register[ic].VaccinationStatus[6] = 1;
+				Register[ic].VaccinationStatus[8] = 1;
+				Register[ic].VaccinationStatus[10] = 1;
+			}
+			else
+			{
+				Register[ic].VaccinationStatus[0] = 1;
+				Register[ic].VaccinationStatus[1] = 1;
+				if (cross[ic] < 0.5)
+				{
+					Register[ic].VaccinationStatus[2] = 1;
+					Register[ic].VaccinationStatus[3] = 1;
+					Register[ic].VaccinationStatus[6] = 1;
+				}
+			}
+			if (VaccineWane == 1)
+			{
+				Register[ic].TimeVacc = 0;
+				Register[ic].ExpVacc = 48 * 20 + (-48 * VaccDur * log(wane1[ic]));
+				if (Register[ic].ExpVacc == 0)
+				{
+					Register[ic].ExpVacc = 1;
+				}
+			}
+		} //
+		if (AdministerMassTxV == 1 &&
+			Register[ic].AgeExact >= MassTxVAgeMIN &&
+			Register[ic].AgeExact < MassTxVAgeMAX &&
+			Register[ic].AliveInd == 1 &&
+			Register[ic].SexInd == 1)
+		{
+
+			if (rcatch[ic] <= 0.9)
+			{ // probability of accepting vaccine
+				// Update vaccine statistics
+				RSApop.NewTxV[18 * Register[ic].SexInd + Register[ic].AgeGroup][CurrYear - StartYear] += 1;
+				// Mark as got therapeutic vaccine
+				Register[ic].GotTxV = 1;
+				// Determine adjusted vaccine efficacy for each HPV type based on HIV status
+				for (int yy = 0; yy < 13; yy++)
+				{
+					if (Register[ic].HPVstage[yy] > 2 && Register[ic].HPVstage[yy] <= 4)
+					{
+						adjustedTxVEfficacy[yy] = TxVEfficacyCIN[yy];
+					} 
+					else
+					{
+						adjustedTxVEfficacy[yy] = TxVEfficacy[yy];
+					}
+					// Further efficacy reduction for WLHIV not on ART:
+					if (!(Register[ic].HIVstage == 0 || Register[ic].HIVstage == 5))
+						adjustedTxVEfficacy[yy] *= ReductionFactor; // multiply adjustedTxVEfficacy by reduction factor due to lowered immunocompetency in WLHIV not on ART
+						Register[ic].TxVStatus[yy]++;
+						if (cross[ic] < adjustedTxVEfficacy[yy])
+					{
+						if ((Register[ic].HPVstage[yy] >= 1 && Register[ic].HPVstage[yy] <= 4) || Register[ic].HPVstage[yy] == 6)
+						{
+							// std::cout << "ic=" << ic << ", HPVtype=" << yy
+							//		  << ": TxV administered to all women, HPVstage was " << Register[ic].HPVstage[yy]
+							//		  << ", now set to 7" << std::endl;
+							Register[ic].HPVstage[yy] = 0; // can also set to 0
+							
+							// std::cout << Register[ic].TxVStatus[yy]++ << std::endl;
+							// std::cout << Register[ic].GotTxV++ << std::endl;
+						}
 					}
 				}
+			}
 		}
-		if(CatchUpVacc==1 && (Register[ic].AgeExact >= CatchUpAgeMIN && Register[ic].AgeExact < CatchUpAgeMAX) && 
-			Register[ic].AliveInd == 1  && Register[ic].GotVacc==0 && Register[ic].SexInd==1 && rcatch[ic]<CatchUpCoverage){ 
-				RSApop.NewVACC[18*Register[ic].SexInd + Register[ic].AgeGroup][CurrYear-StartYear] += 1;
-				Register[ic].GotVacc = 1;	
-					if(WHOvacc==1){
-				Register[ic].VaccinationStatus[0]=1;
-				Register[ic].VaccinationStatus[1]=1;
-					Register[ic].VaccinationStatus[2]=1;
-					Register[ic].VaccinationStatus[3]=1;
-					Register[ic].VaccinationStatus[6]=1;
-						Register[ic].VaccinationStatus[8]=1;
-						Register[ic].VaccinationStatus[10]=1;
+		if (AdministerMassTxVtoART == 1 &&
+			Register[ic].AgeExact >= MassTxVtoARTAgeMIN &&
+			Register[ic].AgeExact < MassTxVtoARTAgeMAX &&
+			Register[ic].AliveInd == 1 &&
+			Register[ic].SexInd == 1 &&
+			Register[ic].HIVstage == 5)
+		{
+
+			if (rcatch[ic] <= 0.9)
+			{ // probability of accepting vaccine
+				// Update vaccine statistics
+				RSApop.NewTxV[18 * Register[ic].SexInd + Register[ic].AgeGroup][CurrYear - StartYear] += 1;
+				// Mark as got therapeutic vaccine
+				Register[ic].GotTxV = 1;
+				// Determine adjusted vaccine efficacy for each HPV type based on HIV status
+				for (int yy = 0; yy < 13; yy++)
+				{
+					if (Register[ic].HPVstage[yy] > 2 && Register[ic].HPVstage[yy] <= 4)
+					{
+						adjustedTxVEfficacy[yy] = TxVEfficacyCIN[yy];
 					}
-					else{
-						Register[ic].VaccinationStatus[0]=1;
-						Register[ic].VaccinationStatus[1]=1;
-						if(cross[ic] <0.5){
-							Register[ic].VaccinationStatus[2]=1;
-							Register[ic].VaccinationStatus[3]=1;
-							Register[ic].VaccinationStatus[6]=1;
+					else
+					{
+						adjustedTxVEfficacy[yy] = TxVEfficacy[yy];
+					}
+					// Further efficacy reduction for WLHIV not on ART
+					if (!(Register[ic].HIVstage == 0 || Register[ic].HIVstage == 5))
+					{
+						adjustedTxVEfficacy[yy] *= ReductionFactor;
+					}
+					Register[ic].TxVStatus[yy]++;
+					if (cross[ic] < adjustedTxVEfficacy[yy])
+					{
+						if ((Register[ic].HPVstage[yy] >= 1 && Register[ic].HPVstage[yy] <= 4) || Register[ic].HPVstage[yy] == 6)
+						{
+							// std::cout << "CurrYear " << CurrYear << "ic=" << ic << ", HPVtype=" << yy
+							//		  << ": TxV administered to ART woman, HPVstage was " << Register[ic].HPVstage[yy]
+							//		  << ", now set to 7" << std::endl;
+							Register[ic].HPVstage[yy] = 0;
 							
 						}
 					}
-					if(VaccineWane==1){
-						Register[ic].TimeVacc = 0;
-						Register[ic].ExpVacc = 48*20 + (-48 * VaccDur * log(wane1[ic]));
-						if(Register[ic].ExpVacc==0){Register[ic].ExpVacc=1;}
 				}
-			}//
+			}
+		}
 	}
-	//file.close();
 }
 void Pop::HitTargets(int WhichType)
 {
@@ -12289,8 +12405,9 @@ void Pop::SaveMacDprev(const char *filout)
 }
 
 void Indiv::GetScreened(int ID, double rea, double scr, double ade, double tts, double res, double ttC, double CCd, double SI, double SII, double SIII, double SIV, 
-							double SId, double SIId, double SIIId, double SIVd) 
+							double SId, double SIId, double SIIId, double SIVd, double AccR, double EffR) 
 {
+	
 	int xx, yy, zz;
 	//Get age that matches coverage age
 	yy = 0;
@@ -12304,6 +12421,7 @@ void Indiv::GetScreened(int ID, double rea, double scr, double ade, double tts, 
 	if(InScreen==1 && timetoCol==0){
 		
 		if(timePassed > timetoScreen && timetoScreen>0 ) {
+			
 			if((CurrYear==2020||CurrYear==2021) && SIVd<0.3){  //remember to change rates of entering screening in ScreeningByYear.txt
 							if( PerfectSchedule==0||CurrYear<ImplementYR){
 					if(HIVstage==5) {timetoScreen = 4.5 * pow(-log(tts),(1.0/0.71)) * 48;}
@@ -12317,13 +12435,13 @@ void Indiv::GetScreened(int ID, double rea, double scr, double ade, double tts, 
 			else {reason=1;}
 			//timetoScreen=0;
 			
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR){
 				if((HIVstage>=5 && AgeExact>=25.0)||(HIVstage<5 && AgeExact>=30.0)){ 
 					if(HPVDNAThermal==0){HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR); }
 					}
 				}	
 			}
@@ -12341,13 +12459,13 @@ void Indiv::GetScreened(int ID, double rea, double scr, double ade, double tts, 
 			if(rea < ScreenReason[zz*4 + yy][CurrYear-StartYear]) {reason=0;}
 			else {reason=1;}
 			//timetoScreen=0;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR){
 				if((HIVstage>=5 && AgeExact>=25.0)||(HIVstage<5 && AgeExact>=30.0)){ 
 					if(HPVDNAThermal==0){HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR); }
 					}
 				}	
 			}
@@ -12356,8 +12474,63 @@ void Indiv::GetScreened(int ID, double rea, double scr, double ade, double tts, 
 		}
 	}
 }
+void Indiv::AdministerTherapeuticVaccine(int ID, double acceptRand, double efficacyRand)
+{
+	double adjustedTxVEfficacy[13];
+	// Only administer vaccine from 2035
+	if (CurrYear < 2035)
+	{
+		return;
+	}
+	if (acceptRand > 0.9)
+	{
+		return;
+	}
+	// Check if woman has any active HPV infection (stages 1-4) -- I.e if screen is (will be) positive
+	// for any HPV type
+	/* bool hasActiveHPV = false;
+	 for (int xx = 0; xx < 13; xx++) {
+		 if (HPVstage[xx] >= 1 && HPVstage[xx] <= 4) {
+			 hasActiveHPV = true;
+			 break;
+		 }
+	 }
+	 if (!hasActiveHPV) {
+		 return;
+	 }
+ */
+	RSApop.NewTxV[18 * SexInd + AgeGroup][CurrYear - StartYear] += 1;
+	GotTxV = 1;
+	// Determine adjusted vaccine efficacy for each HPV type based on HIV status
+	for (int xx = 0; xx < 13; xx++)
+	{
+		if (HPVstage[xx] > 2 && HPVstage[xx] <= 4)
+		{
+			adjustedTxVEfficacy[xx] = TxVEfficacyCIN[xx];
+		}
+		else
+		{
+			adjustedTxVEfficacy[xx] = TxVEfficacy[xx];
+		}
+		// Further efficacy reduction for WLHIV not on ART
+		if (!(HIVstage == 0 || HIVstage == 5))
+		{
+			adjustedTxVEfficacy[xx] *= ReductionFactor;
+		}
+		if ((HPVstage[xx] >= 1 && HPVstage[xx] <= 4) || (HPVstage[xx] == 6))
+		{
+			TxVStatus[xx]++;
+			// Convert active infection to latent with probability equal to efficacy
+			if (efficacyRand < adjustedTxVEfficacy[xx])
+			{
+				HPVstageE[xx] = 0;
+			}
+		}
+	}
+}
+
 void Indiv::ScreenAlgorithm(int ID, double rea,  double ade, double tts, double res, double ttC, double CCd, double SI, double SII, double SIII, double SIV, 
-							double SId, double SIId, double SIIId, double SIVd)
+							double SId, double SIId, double SIIId, double SIVd, double AccR, double EffR)
 {
 	int PrevResult, yy, zz;
 	PrevResult = ScreenResult;
@@ -12372,7 +12545,7 @@ void Indiv::ScreenAlgorithm(int ID, double rea,  double ade, double tts, double 
 	else if (AgeGroup==8||AgeGroup==9) { yy = 2;}
 	else if (AgeGroup==10||AgeGroup==11) { yy = 3;}
 	else if (AgeGroup>=12) { yy = 4;}
-		
+ 
 	if (HIVstage==0) {zz=0;}
 	//else if(HIVstage==5||HIVstage==6) {zz=1;}
 	else if(HIVstage==5) {zz=1;}
@@ -12482,7 +12655,7 @@ void Indiv::ScreenAlgorithm(int ID, double rea,  double ade, double tts, double 
 			if((WHOScreening==0 && PerfectSchedule==0)||CurrYear<ImplementYR){
 				//if(HIVstage==5) {timetoScreen = 5.3 * pow(-log(tts),(1.0/0.78)) * 48;}
 				//else if(AgeExact<50) { timetoScreen = 15.0 * pow(-log(tts),(1.0/0.83)) * 48; }
-				if(HIVstage==5) {timetoScreen = 7.9 * pow(-log(tts),(1.0/1.0)) * 48;}
+				if(HIVstage==5) {timetoScreen = 7.9 * pow(-log(tts),(1.0/1.0)) * 48;} //
 				else if(AgeExact<50) { timetoScreen = 15.0 * pow(-log(tts),(1.0/1.0)) * 48; }
 				else { timetoScreen = 200 * 48; }
 				if(timetoScreen==0) {timetoScreen=1;}
@@ -12626,11 +12799,14 @@ void Indiv::ScreenAlgorithm(int ID, double rea,  double ade, double tts, double 
 		if( PerfectSchedule==1 && CurrYear>=ImplementYR){timetoScreen = 12;}
 		
 		repeat=1;
-	}			
+	}	
+	 if (TxVviaScreeningAlgorithm==1){
+		AdministerTherapeuticVaccine(ID, AccR, EffR); 
+	 }
 }
 void Indiv::WHOGetScreened(int ID, double rea, double scr, double ade, double tts, double res, double ttC, double CCd, 
 									double SI, double SII, double SIII, double SIV, double clr, 
-							double SId, double SIId, double SIIId, double SIVd) 
+							double SId, double SIId, double SIIId, double SIVd, double AccR, double EffR) 
 {
 	int iy;	
 	iy = CurrYear - StartYear;
@@ -12708,7 +12884,7 @@ void Indiv::WHOGetScreened(int ID, double rea, double scr, double ade, double tt
 		if(InScreen==1 && timetoCol==0  &&
 			((CurrYear<2045&&AgeExact>=30)||(AgeExact<30)) && timetoScreen<5*48){
 			if(timePassed > timetoScreen && timetoScreen>0 ) {
-				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);
+				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR);
 				timePassed=0;
 			}
 			else {
@@ -12719,7 +12895,7 @@ void Indiv::WHOGetScreened(int ID, double rea, double scr, double ade, double tt
 
 		if(InScreen==0 && (HIVstage>0||(HIVstage==0 && AgeGroup>3))){
 			if (scr < ScreenProb[zz*4 + yy][CurrYear-StartYear]/48.0){
-				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);
+				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR);
 				InScreen=1;			
 				timePassed=0;			
 			}
@@ -14100,6 +14276,7 @@ void Indiv::HPVScreenAlgorithm(int ID, double rea,  double ade, double tts, doub
 		if( PerfectSchedule==1 && CurrYear>=ImplementYR){timetoScreen = 12;}
 		repeat=1;
 	}	
+
 }
 
 void Indiv::HPV_ThermalScreenAlgorithm(int ID, double rea,  double ade, double tts, double res, double ttC, double CCd, double SI, double SII, double SIII, double SIV, 
@@ -14738,10 +14915,11 @@ void Indiv::HPV_ThermalScreenAlgorithm(int ID, double rea,  double ade, double t
 		if( PerfectSchedule==1 && CurrYear>=ImplementYR){timetoScreen = 12;}
 		repeat=1;		
 	}
+
 }
 
 void Indiv::PerfectGetScreened(int ID, double rea,  double scr, double ade, double tts, double res, double ttC, double CCd, double SI, double SII, double SIII, double SIV, 
-							double SId, double SIId, double SIIId, double SIVd) 
+							double SId, double SIId, double SIIId, double SIVd, double AccR, double EffR) 
 {
 	int iy;	
 	iy = CurrYear - StartYear;
@@ -14759,13 +14937,13 @@ void Indiv::PerfectGetScreened(int ID, double rea,  double scr, double ade, doub
 	if((timetoScreen>0 && timetoScreen<96) && timetoCol==0){ //give it two years for those who were already scheduled for a screen to be screened
 		if(timePassed > timetoScreen ) {
 			timetoScreen=0;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR &&
 				((HIVstage>=5 && AgeExact>=25.0 && AgeExact<60.0)||(HIVstage<5 && AgeExact>=30.0 && AgeExact<60.0))) {
 					if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR); }
 					}
 			}			
 			timePassed=0;
@@ -14780,34 +14958,34 @@ void Indiv::PerfectGetScreened(int ID, double rea,  double scr, double ade, doub
 		
 			if(AgeExact>=30.0 && AgeExact<40.0 && Scr30==0){
 				Scr30=1;
-				if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+				if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR);}
 				else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 					if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR); }
 					}
 				}
 			}
 			if(AgeExact>=40.0 && AgeExact<50.0 && Scr40==0){
 				Scr40=1;
-				if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+				if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR);}
 				else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 					if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd,AccR, EffR); }
 					}
 				}
 			}
 			if(AgeExact>=50.0 && AgeExact<60.0 && Scr50==0){
 				Scr50=1;
-				if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+				if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 				else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 					if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 				}
 			}
@@ -14816,152 +14994,152 @@ void Indiv::PerfectGetScreened(int ID, double rea,  double scr, double ade, doub
 		if(AgeExact>=15.0 && AgeExact<18.0 && Scr16==0){
 			Scr16=1;
 			if(HPVDNA==0 || CurrYear<ImplementYR) {
-				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);
+				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);
 			}
 		}
 		if(AgeExact>=18.0 && AgeExact<21.0 && Scr19==0){
 			Scr19=1;
 			if(HPVDNA==0 || CurrYear<ImplementYR) {
-				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);
+				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);
 			}
 		}
 		if(AgeExact>=21.0 && AgeExact<24.0 && Scr22==0){
 			Scr22=1;
 			if(HPVDNA==0 || CurrYear<ImplementYR) {
-				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);
+				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);
 			}
 		}
 		if(AgeExact>=24.0 && AgeExact<27.0 && Scr25==0){
 			Scr25=1;
 			if(HPVDNA==0 || CurrYear<ImplementYR || AgeExact==24.0) {
-				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);
+				ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);
 			}
 			else if(AgeExact>=25.0 && HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}	
 		}
 		if(AgeExact>=27.0 && AgeExact<30.0 && Scr28==0){
 			Scr28=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
 		if(AgeExact>=30.0 && AgeExact<33.0 && Scr31==0){
 			Scr31=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
 		if(AgeExact>=33.0 && AgeExact<36.0 && Scr34==0){
 			Scr34=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
 		if(AgeExact>=36.0 && AgeExact<39.0 && Scr37==0){
 			Scr37=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
 		if(AgeExact>=39.0 && AgeExact<42.0 && Scr40==0){
 			Scr40=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
 		if(AgeExact>=42.0 && AgeExact<45.0 && Scr43==0){
 			Scr43=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
 		if(AgeExact>=45.0 && AgeExact<48.0 && Scr46==0){
 			Scr46=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
 		if(AgeExact>=48.0 && AgeExact<51.0 && Scr49==0){
 			Scr49=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
 		if(AgeExact>=51.0 && AgeExact<54.0 && Scr52==0){
 			Scr52=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}	
 		if(AgeExact>=54.0 && AgeExact<57.0 && Scr55==0){
 			Scr55=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
 		if(AgeExact>=57.0 && AgeExact<60.0 && Scr58==0){
 			Scr58=1;
-			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
+			if(HPVDNA==0 || CurrYear<ImplementYR) {ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR);}
 			else if(HPVDNA==1 && CurrYear>=ImplementYR) {
 				if(HPVDNAThermal==0) {HPVScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
 					else{
 						if(ThermalORPap < PropThermal){HPV_ThermalScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd);}
-						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd); }
+						else{ScreenAlgorithm(ID, rea, ade, tts, res, ttC, CCd, SI, SII, SIII, SIV, SId, SIId, SIIId, SIVd, AccR, EffR); }
 					}
 			}
 		}
@@ -15149,13 +15327,21 @@ void ReadCCStrategies()
 	data.at("S3S4").get_to(S3S4);		 
 	data.at("S5S6").get_to(S5S6);				 
 	data.at("S7S11").get_to(S7S11);					
-	data.at("CatchUpVaccHIV").get_to(CatchUpVaccHIV);	 
+	data.at("CatchUpVaccHIV").get_to(CatchUpVaccHIV);
 	data.at("CatchUpVacc").get_to(CatchUpVacc);	  
 	data.at("CatchUpAgeMIN").get_to(CatchUpAgeMIN);	 
 	data.at("CatchUpAgeMAX").get_to(CatchUpAgeMAX);	 
 	data.at("CatchUpCoverage").get_to(CatchUpCoverage);	 
 	data.at("VaccineWane").get_to(VaccineWane);		
-	data.at("VaccDur").get_to(VaccDur);			
+	data.at("VaccDur").get_to(VaccDur);		
+	data.at("AdministerMassTxV").get_to(AdministerMassTxV);
+	data.at("MassTxVAgeMIN").get_to(MassTxVAgeMIN);
+	data.at("MassTxVAgeMAX").get_to(MassTxVAgeMAX);	
+	data.at("AdministerMassTxVtoART").get_to(AdministerMassTxVtoART);
+	data.at("MassTxVtoARTAgeMIN").get_to(MassTxVtoARTAgeMIN);
+	data.at("MassTxVtoARTAgeMAX").get_to(MassTxVtoARTAgeMAX);	
+	data.at("ReductionFactor").get_to(ReductionFactor);
+	data.at("TxVviaScreeningAlgorithm").get_to(TxVviaScreeningAlgorithm);	
 	data.at("UpdateStart").get_to(UpdateStart);		
 	data.at("CreateCohort").get_to(CreateCohort);		 
 	data.at("UseMedians").get_to(UseMedians);	
