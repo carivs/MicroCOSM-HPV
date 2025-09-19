@@ -4963,7 +4963,7 @@ void Pop::OneYear()
 	
 	if (UpdateStart == 1 && CurrYear==2030){ GetNumbersByHPVstageAge();}
 	//if(WHOscenario==1 && WHOvacc==1 && CurrYear==ImplementYR){
-	if( AdministerMassTxV ==1  || AdministerMassTxVtoART == 1 && (CurrYear == 2035) ){//CampaignYear[CurrYear-StartYear]==1){//#CurrYear==ImplementYR){
+	if((AdministerMassTxV ==1  || AdministerMassTxVtoART == 1) && (CurrYear == 2035)){//CampaignYear[CurrYear-StartYear]==1){//#CurrYear==ImplementYR){
 		RSApop.AssignVacc2024();
 	}
 	GetPopPyramid();
@@ -11401,7 +11401,7 @@ void ProspectiveCohort(int cycle)
 		ofstream file(s.str().c_str(), std::ios::app); 
 
 		for (int i = 0; i < tss; i++){
-			if (Register[i].VirginInd == 0 && Register[i].AliveInd == 1 && Register[i].AgeExact >= 18 &&  Register[i].AgeExact <= 24 && Register[i].HIVstage == 0	&& Register[i].SexInd==1 ){// && Register[i].VirginInd==0 ){  //&& Register[i].TrueStage>2
+			if (Register[i].VirginInd == 0 && Register[i].AliveInd == 1 && Register[i].AgeExact >= 18 &&  Register[i].AgeExact < 25 && Register[i].HIVstage == 0	&& Register[i].SexInd==1 ){// && Register[i].VirginInd==0 ){  //&& Register[i].TrueStage>2
 				//){   
 				file << CurrSim << " " << CurrYear << " " <<  i+1 << " " <<  Register[i].AgeExact << " ";
 				//file << Register[i].SexInd << " "; // << Register[i].VirginInd << " " ; 
@@ -12477,8 +12477,8 @@ void Indiv::GetScreened(int ID, double rea, double scr, double ade, double tts, 
 void Indiv::AdministerTherapeuticVaccine(int ID, double acceptRand, double efficacyRand)
 {
 	double adjustedTxVEfficacy[13];
-	// Only administer vaccine from 2030
-	if (CurrYear < 2030)
+	// Only administer vaccine from 2035
+	if (CurrYear < 2035)
 	{
 		return;
 	}
